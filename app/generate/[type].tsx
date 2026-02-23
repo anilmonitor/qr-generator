@@ -1,4 +1,5 @@
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import * as MediaLibrary from 'expo-media-library';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React, { useRef, useState } from 'react';
@@ -76,6 +77,25 @@ export default function GenerateScreen() {
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'Could not share the QR code');
+    }
+  };
+
+  const saveQRCode = async () => {
+    try {
+      if (viewShotRef.current && viewShotRef.current.capture) {
+        const { status } = await MediaLibrary.requestPermissionsAsync(true, ['photo']);
+        if (status !== 'granted') {
+          Alert.alert('Permission needed', 'Please grant permission to save the QR code to your gallery.');
+          return;
+        }
+
+        const uri = await viewShotRef.current.capture();
+        await MediaLibrary.saveToLibraryAsync(uri);
+        Alert.alert('Success', 'QR Code saved to gallery successfully!');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', 'Could not save the QR code');
     }
   };
 
@@ -212,7 +232,7 @@ export default function GenerateScreen() {
                   <Text style={styles.actionBtnText}>Share</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert("Coming Soon", "Save feature to be implemented")}>
+                <TouchableOpacity style={styles.actionBtn} onPress={saveQRCode}>
                   <View style={styles.actionIconContainer}>
                     <Ionicons name="download" size={24} color="#7F60F9" />
                   </View>
